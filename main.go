@@ -1,4 +1,4 @@
-package izotope_auto
+package main
 
 import (
 	"fmt"
