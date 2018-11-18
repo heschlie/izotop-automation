@@ -1,6 +1,5 @@
 package izotope_auto
 
-import "C"
 import (
 	"fmt"
 	"github.com/go-vgo/robotgo"
