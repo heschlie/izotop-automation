@@ -11,8 +11,6 @@ import (
 var inFiles = filepath.FromSlash("/Users/matthewvoelker/Desktop/to_rx/")
 
 func main() {
-	bitmaps := openBitmaps()
-
 	// Run iZotope.
 	iz := exec.Command("pathToIZotope")
 	err := iz.Start()
@@ -27,11 +25,11 @@ func main() {
 	robotgo.KeyTap("command", "b")
 
 	// Find the preset button.
-	robotgo.BitmapClick(bitmaps["preset.bmp"])
+	robotgo.BitmapClick(robotgo.OpenBitmap("images/preset.bmp"))
 	robotgo.Sleep(0.2)
 
 	// Find add files button and click it.
-	robotgo.BitmapClick(bitmaps["add_files.bmp"])
+	robotgo.BitmapClick(robotgo.OpenBitmap("images/add_files.bmp"))
 	robotgo.Sleep(0.2)
 
 	// Opens text window for file path.
@@ -49,36 +47,17 @@ func main() {
 	robotgo.Sleep(10)
 
 	// Find and click the process button.
-	robotgo.BitmapClick(bitmaps["process.bmp"])
+	robotgo.BitmapClick(robotgo.OpenBitmap("images/process.bmp"))
 
 	// Capture the screen and see if we can find the cancel button, continue as long as we see it.
 	screen := robotgo.CaptureScreen()
 	defer robotgo.FreeBitmap(screen)
 
-	for robotgo.CountBitmap(bitmaps["cancel.bmp"], screen) > 0 {
+	for robotgo.CountBitmap(robotgo.OpenBitmap("images/cancel.bmp"), screen) > 0 {
 		robotgo.Sleep(5)
 		robotgo.FreeBitmap(screen)
 		screen = robotgo.CaptureScreen()
 	}
 
-	freeBitmaps(bitmaps)
-
 	fmt.Println("Finished")
-}
-
-func openBitmaps() map[string]C.MMBitmapRef {
-	names := []string{"add_files.bmp", "preset.bmp", "process.bmp"}
-	bitmaps := map[string]C.MMBitmapRef{}
-	for _, name := range names {
-		f := robotgo.OpenBitmap(filepath.Join("images", name))
-		bitmaps[name] = f
-	}
-
-	return bitmaps
-}
-
-func freeBitmaps(bitmaps map[string]C.MMBitmapRef) {
-	for _, bmp := range bitmaps {
-		robotgo.FreeBitmap(bmp)
-	}
 }
