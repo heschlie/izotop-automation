@@ -21,10 +21,14 @@ func main() {
 	robotgo.ActiveName("iZotope RX 7")
 
 	// Opens batch window.
-	robotgo.KeyTap("command", "b")
+	robotgo.KeyTap("b", "command")
 
 	// Find the preset button.
-	robotgo.BitmapClick(robotgo.OpenBitmap("images/preset.bmp"))
+	bmp := robotgo.OpenBitmap("images/preset.bmp")
+	x, y := robotgo.FindBitmap(bmp)
+	fmt.Println(x)
+	fmt.Println(y)
+	robotgo.MoveClick(x, y)
 	robotgo.Sleep(0.2)
 
 	// Find add files button and click it.
@@ -32,14 +36,14 @@ func main() {
 	robotgo.Sleep(0.2)
 
 	// Opens text window for file path.
-	robotgo.KeyTap("command", "shift", "g")
+	robotgo.KeyTap("g", "shift", "command")
 	robotgo.Sleep(0.2)
 	robotgo.KeyTap("escape")
 	robotgo.Sleep(0.2)
 	robotgo.WriteAll(inFiles)
 	robotgo.KeyTap("enter")
 	robotgo.Sleep(0.2)
-	robotgo.KeyTap("command", "a")
+	robotgo.KeyTap("a", "command")
 	robotgo.Sleep(0.2)
 	robotgo.KeyTap("enter")
 
