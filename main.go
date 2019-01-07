@@ -72,6 +72,9 @@ func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles *[]A
 			// Generate our paths and store this in a slice to be processed.
 			rPath := strings.Replace(path, stage, roughPath, 1)
 			fPath := strings.Replace(path, stage, finishedPath, 1)
+			s := strings.Split(fPath, "/")
+			s = s[:len(s)-1]
+			fPath = filepath.Join(s...)
 			aFile := AudioFile{
 				Name:      info.Name(),
 				SrcPath:   path,
@@ -123,7 +126,7 @@ func moveFinishedFiles(inFiles string, AudioFiles []AudioFile) {
 		for _, afile := range AudioFiles {
 			// Copy the rough file over and remove it.
 			if file.Name() == afile.Name {
-				fmt.Println("Copying " + fName + "to " + afile.RoughPath)
+				fmt.Println("Copying " + fName + " to " + afile.RoughPath)
 				_, err := copy(fName, afile.RoughPath)
 				if err != nil {
 					fmt.Println(err)
@@ -131,8 +134,8 @@ func moveFinishedFiles(inFiles string, AudioFiles []AudioFile) {
 				os.Remove(fName)
 			// Copy the finished file over and remove it.
 			} else if strings.HasPrefix(file.Name(), strings.TrimSuffix(afile.Name, ".wav")) {
-				fmt.Println("Copying " + fName + "to " + afile.RXPath)
-				_, err := copy(fName, afile.RXPath)
+				fmt.Println("Copying " + fName + " to " + afile.RXPath)
+				_, err := copy(fName, filepath.Join(afile.RXPath, fName))
 				if err != nil {
 					fmt.Println(err)
 				}
