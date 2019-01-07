@@ -135,7 +135,7 @@ func moveFinishedFiles(inFiles string, AudioFiles []AudioFile) {
 			// Copy the finished file over and remove it.
 			} else if strings.HasPrefix(file.Name(), strings.TrimSuffix(afile.Name, ".wav")) {
 				fmt.Println("Copying " + fName + " to " + afile.RXPath)
-				_, err := copy(fName, filepath.Join(afile.RXPath, fName))
+				_, err := copy(fName, filepath.Join(afile.RXPath, file.Name()))
 				if err != nil {
 					fmt.Println(err)
 				}
