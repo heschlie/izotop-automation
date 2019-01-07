@@ -105,7 +105,10 @@ func moveFilesForProcessing(inFiles string, AudioFiles []AudioFile) {
 	fmt.Println("Copying files from " + inFiles)
 	for _, file := range AudioFiles {
 		fmt.Println("Copying " + file.SrcPath)
-		copy(file.SrcPath, filepath.Join(inFiles, file.Name))
+		_, err := copy(file.SrcPath, filepath.Join(inFiles, file.Name))
+		if err != nil {
+			fmt.Println(err)
+		}
 		os.Remove(file.SrcPath)
 	}
 }
@@ -123,12 +126,18 @@ func moveFinishedFiles(inFiles string, AudioFiles []AudioFile) {
 			// Copy the rough file over and remove it.
 			if file.Name() == afile.Name {
 				fmt.Println("Copying " + fName + "to " + afile.RoughPath)
-				copy(fName, afile.RoughPath)
+				_, err := copy(fName, afile.RoughPath)
+				if err != nil {
+					fmt.Println(err)
+				}
 				os.Remove(fName)
 			// Copy the finished file over and remove it.
 			} else if strings.HasPrefix(file.Name(), strings.TrimSuffix(afile.Name, ".wav")) {
 				fmt.Println("Copying " + fName + "to " + afile.RXPath)
-				copy(fName, afile.RXPath)
+				_, err := copy(fName, afile.RXPath)
+				if err != nil {
+					fmt.Println(err)
+				}
 				os.Remove(fName)
 			}
 		}
