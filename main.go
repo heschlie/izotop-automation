@@ -13,12 +13,12 @@ import (
 )
 
 // Filepaths from dropbox.
-var srcDir_rs = "/Users/matthewvoelker/Documents/"
-var srcDir_nv = "/Users/matthewvoelker/Documents/"
+var srcDir_rs = filepath.FromSlash("/Users/matthewvoelker/Documents/Editorial/RS")
+var srcDir_nv = filepath.FromSlash("/Users/matthewvoelker/Documents/Editorial/NV")
 
 // Where to point izotope.
-var inFiles_rs = filepath.FromSlash("/Users/matthewvoelker/Desktop/to_rx/")
-var inFiles_nv = filepath.FromSlash("/Users/matthewvoelker/Desktop/to_rx/")
+var inFiles_rs = filepath.FromSlash("/Users/matthewvoelker/Desktop/RS_to_RX")
+var inFiles_nv = filepath.FromSlash("/Users/matthewvoelker/Desktop/NV_to_RX")
 
 // Locations for RS talents.
 var stage_rs = "Test_RS_00_Dailies"
@@ -54,7 +54,7 @@ func main() {
 
 // Walk the relevant part of the filesystem to find the files to be processed.
 func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []AudioFile) {
-	err := filepath.Walk(srcDir+stage,
+	err := filepath.Walk(filepath.Join(srcDir, stage),
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -79,6 +79,7 @@ func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []Au
 				RoughPath: rPath,
 				RXPath:    fPath,
 			}
+			fmt.Printf("Created %v\n", aFile)
 			AudioFiles = append(AudioFiles, aFile)
 			return nil
 		})
@@ -86,7 +87,7 @@ func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []Au
 		log.Println(err)
 	}
 
-	aFilesJson, _ := json.Marshal(AudioFiles)
+	aFilesJson, _ := json.MarshalIndent(AudioFiles, "", "  ")
 	name := "logs.json"
 	if strings.Contains(stage, "RS") {
 		name = "rs-logs.json"
@@ -101,7 +102,9 @@ func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []Au
 
 // Move all of our files into the applications working directory.
 func moveFilesForProcessing(inFiles string, AudioFiles []AudioFile) {
+	fmt.Println("Copying files from " + inFiles)
 	for _, file := range AudioFiles {
+		fmt.Println("Copying " + file.SrcPath)
 		copy(file.SrcPath, filepath.Join(inFiles, file.Name))
 		os.Remove(file.SrcPath)
 	}
@@ -119,10 +122,12 @@ func moveFinishedFiles(inFiles string, AudioFiles []AudioFile) {
 		for _, afile := range AudioFiles {
 			// Copy the rough file over and remove it.
 			if file.Name() == afile.Name {
+				fmt.Println("Copying " + fName + "to " + afile.RoughPath)
 				copy(fName, afile.RoughPath)
 				os.Remove(fName)
 			// Copy the finished file over and remove it.
 			} else if strings.HasPrefix(file.Name(), strings.TrimSuffix(afile.Name, ".wav")) {
+				fmt.Println("Copying " + fName + "to " + afile.RXPath)
 				copy(fName, afile.RXPath)
 				os.Remove(fName)
 			}
