@@ -43,17 +43,17 @@ type AudioFile struct {
 func main() {
 	AudioFiles_rs = []AudioFile{}
 	AudioFiles_nv = []AudioFile{}
-	findNewFiles(srcDir_rs, stage_rs, roughPath_rs, finishedPath_rs, AudioFiles_rs)
-	findNewFiles(srcDir_nv, stage_nv, roughPath_nv, finishedPath_nv, AudioFiles_nv)
+	findNewFiles(srcDir_rs, stage_rs, roughPath_rs, finishedPath_rs, &AudioFiles_rs)
+	findNewFiles(srcDir_nv, stage_nv, roughPath_nv, finishedPath_nv, &AudioFiles_nv)
 	moveFilesForProcessing(inFiles_rs, AudioFiles_rs)
 	moveFilesForProcessing(inFiles_nv, AudioFiles_nv)
-	runIZotope()
+	//runIZotope()
 	moveFinishedFiles(inFiles_rs, AudioFiles_rs)
 	moveFinishedFiles(inFiles_nv, AudioFiles_nv)
 }
 
 // Walk the relevant part of the filesystem to find the files to be processed.
-func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []AudioFile) {
+func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles *[]AudioFile) {
 	err := filepath.Walk(filepath.Join(srcDir, stage),
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -102,7 +102,6 @@ func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []Au
 
 // Move all of our files into the applications working directory.
 func moveFilesForProcessing(inFiles string, AudioFiles []AudioFile) {
-	fmt.Println("Copying files from " + inFiles)
 	for _, file := range AudioFiles {
 		fmt.Println("Copying " + file.SrcPath)
 		_, err := copy(file.SrcPath, filepath.Join(inFiles, file.Name))
