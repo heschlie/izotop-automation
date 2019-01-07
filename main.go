@@ -12,15 +12,26 @@ import (
 	"strings"
 )
 
-var inFiles = filepath.FromSlash("/Users/matthewvoelker/Desktop/to_rx/")
+// Filepaths from dropbox.
+var srcDir_rs = "/Users/matthewvoelker/Documents/"
+var srcDir_nv = "/Users/matthewvoelker/Documents/"
 
-var srcDir = "/Users/matthewvoelker/Documents/"
+// Where to point izotope.
+var inFiles_rs = filepath.FromSlash("/Users/matthewvoelker/Desktop/to_rx/")
+var inFiles_nv = filepath.FromSlash("/Users/matthewvoelker/Desktop/to_rx/")
 
-var stage = "Test_RS_00"
-var RoughPath = "Test_RS_01"
-var RXPath = "Test_RS_00"
+// Locations for RS talents.
+var stage_rs = "Test_RS_00_Dailies"
+var roughPath_rs = "Test_RS_01_Rough_Edits"
+var finishedPath_rs = "Test_RS_02_RX_Files"
 
-var AudioFiles []AudioFile
+// Locations for NV talents
+var stage_nv = "Test_NV_00_Dailies"
+var roughPath_nv = "Test_NV_01_Rough_Edits"
+var finishedPath_nv = "Test_NV_02_RX_Files"
+
+var AudioFiles_rs []AudioFile
+var AudioFiles_nv []AudioFile
 
 type AudioFile struct {
 	Name      string
@@ -30,16 +41,19 @@ type AudioFile struct {
 }
 
 func main() {
-	findNewFiles()
-	moveFilesForProcessing()
+	AudioFiles_rs = []AudioFile{}
+	AudioFiles_nv = []AudioFile{}
+	findNewFiles(srcDir_rs, stage_rs, roughPath_rs, finishedPath_rs, AudioFiles_rs)
+	findNewFiles(srcDir_nv, stage_nv, roughPath_nv, finishedPath_nv, AudioFiles_nv)
+	moveFilesForProcessing(inFiles_rs, AudioFiles_rs)
+	moveFilesForProcessing(inFiles_nv, AudioFiles_nv)
 	runIZotope()
-	moveFinishedFiles()
+	moveFinishedFiles(inFiles_rs, AudioFiles_rs)
+	moveFinishedFiles(inFiles_nv, AudioFiles_nv)
 }
 
 // Walk the relevant part of the filesystem to find the files to be processed.
-func findNewFiles() {
-	AudioFiles = []AudioFile{}
-
+func findNewFiles(srcDir, stage, roughPath, finishedPath string, AudioFiles []AudioFile) {
 	err := filepath.Walk(srcDir+stage,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -57,13 +71,13 @@ func findNewFiles() {
 			}
 
 			// Generate our paths and store this in a slice to be processed.
-			rPath := strings.Replace(path, stage, RoughPath, 1)
-			rxPath := strings.Replace(path, stage, RXPath, 1)
+			rPath := strings.Replace(path, stage, roughPath, 1)
+			fPath := strings.Replace(path, stage, finishedPath, 1)
 			aFile := AudioFile{
 				Name:      info.Name(),
 				SrcPath:   path,
 				RoughPath: rPath,
-				RXPath:    rxPath,
+				RXPath:    fPath,
 			}
 			AudioFiles = append(AudioFiles, aFile)
 			return nil
@@ -73,14 +87,20 @@ func findNewFiles() {
 	}
 
 	aFilesJson, _ := json.Marshal(AudioFiles)
-	err = ioutil.WriteFile("logs.json", aFilesJson, 0644)
+	name := "logs.json"
+	if strings.Contains(stage, "RS") {
+		name = "rs-logs.json"
+	} else if strings.Contains(stage, "NV") {
+		name = "nv-logs.json"
+	}
+	err = ioutil.WriteFile(name, aFilesJson, 0644)
 	if err != nil {
 		fmt.Println("Failed to write log file to logs.json")
 	}
 }
 
 // Move all of our files into the applications working directory.
-func moveFilesForProcessing() {
+func moveFilesForProcessing(inFiles string, AudioFiles []AudioFile) {
 	for _, file := range AudioFiles {
 		copy(file.SrcPath, filepath.Join(inFiles, file.Name))
 		os.Remove(file.SrcPath)
@@ -89,7 +109,7 @@ func moveFilesForProcessing() {
 
 // moveFinishedFiles will move the rough file and the finished files to their respective places and
 // delete them from the applications working directory.
-func moveFinishedFiles() {
+func moveFinishedFiles(inFiles string, AudioFiles []AudioFile) {
 	files, err := ioutil.ReadDir(inFiles)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to read files from %s", inFiles))
